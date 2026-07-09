@@ -6,6 +6,7 @@ import {
   Gem,
   Heart,
   Home,
+  Instagram,
   Leaf,
   Sparkles,
   Star,
@@ -176,6 +177,21 @@ export default function CasaComAlmaResult() {
           <MiniFeature icon={Sparkles} label="Conexão com a natureza" />
           <MiniFeature icon={Home} label="Arquitetura que acolhe e transforma" />
           <MiniFeature icon={Heart} label="Histórias que ganham forma" />
+        </section>
+
+        <section className="mt-8 rounded-2xl border border-card-border bg-card p-6 text-center md:p-8">
+          <p className="mx-auto max-w-2xl font-serif text-2xl font-semibold leading-tight tracking-tight">
+            Continue se inspirando com projetos, ideias e referências da Phayna Arquitetura.
+          </p>
+          <a
+            href="https://www.instagram.com/phaynasouzza/?__pwa=1#"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 font-semibold text-primary-foreground transition hover:bg-primary/90"
+          >
+            <Instagram className="h-5 w-5" strokeWidth={1.7} />
+            Seguir no Instagram
+          </a>
         </section>
 
         <div className="mt-10 flex justify-center">
