@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS leads (
   email text NOT NULL,
   cidade text NOT NULL,
   whatsapp text,
+  origem text NOT NULL DEFAULT 'custo_invisivel',
   tipo_obra text NOT NULL,
   tamanho text NOT NULL,
   fase text NOT NULL,
@@ -13,5 +14,9 @@ CREATE TABLE IF NOT EXISTS leads (
   prazo text NOT NULL,
   investimento text NOT NULL,
   classificacao text NOT NULL,
+  resultado text,
+  resultado_complementar text,
+  lead_score integer,
+  answers jsonb,
   created_at timestamptz NOT NULL DEFAULT now()
 );

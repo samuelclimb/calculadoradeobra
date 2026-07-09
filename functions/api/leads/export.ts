@@ -1,5 +1,6 @@
 import {
   escapeCsv,
+  ensureLeadColumns,
   formatarClassificacao,
   getSql,
   normalizeLeadRows,
@@ -18,6 +19,7 @@ export async function onRequestGet(context: {
   }
 
   const sql = getSql(context.env);
+  await ensureLeadColumns(sql);
   const rows = await sql`
     select
       id,
@@ -25,6 +27,7 @@ export async function onRequestGet(context: {
       email,
       cidade,
       whatsapp,
+      origem,
       tipo_obra as "tipoObra",
       tamanho,
       fase,
@@ -34,6 +37,10 @@ export async function onRequestGet(context: {
       prazo,
       investimento,
       classificacao,
+      resultado,
+      resultado_complementar as "resultadoComplementar",
+      lead_score as "leadScore",
+      answers,
       created_at as "createdAt"
     from leads
     order by created_at desc
@@ -46,6 +53,7 @@ export async function onRequestGet(context: {
     "Email",
     "Cidade",
     "WhatsApp",
+    "Origem",
     "Tipo de Obra",
     "Tamanho",
     "Fase",
@@ -55,6 +63,10 @@ export async function onRequestGet(context: {
     "Prazo",
     "Investimento",
     "Resultado do diagnóstico",
+    "Resultado principal",
+    "Resultado complementar",
+    "Lead score",
+    "Respostas completas",
     "Data",
   ];
 
@@ -65,6 +77,7 @@ export async function onRequestGet(context: {
       lead.email,
       lead.cidade,
       lead.whatsapp ?? "",
+      lead.origem ?? "custo_invisivel",
       lead.tipoObra,
       lead.tamanho,
       lead.fase,
@@ -74,6 +87,10 @@ export async function onRequestGet(context: {
       lead.prazo,
       lead.investimento,
       formatarClassificacao(lead.classificacao),
+      lead.resultado ?? "",
+      lead.resultadoComplementar ?? "",
+      lead.leadScore == null ? "" : String(lead.leadScore),
+      lead.answers ? JSON.stringify(lead.answers) : "",
       String(lead.createdAt),
     ]
       .map(escapeCsv)

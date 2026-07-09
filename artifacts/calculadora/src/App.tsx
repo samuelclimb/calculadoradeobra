@@ -6,6 +6,8 @@ import { Route, Switch, Router as WouterRouter } from 'wouter';
 import Calculator from '@/pages/Calculator';
 import Result from '@/pages/Result';
 import Admin from '@/pages/Admin';
+import CasaComAlma from '@/pages/CasaComAlma';
+import CasaComAlmaResult from '@/pages/CasaComAlmaResult';
 import NotFound from '@/pages/not-found';
 
 const queryClient = new QueryClient();
@@ -15,6 +17,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Calculator} />
       <Route path="/calculadora" component={Calculator} />
+      <Route path="/casa-com-alma" component={CasaComAlma} />
+      <Route path="/casa-com-alma/resultado" component={CasaComAlmaResult} />
       <Route path="/resultado" component={Result} />
       <Route path="/admin" component={Admin} />
       <Route component={NotFound} />

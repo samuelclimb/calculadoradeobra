@@ -5,6 +5,29 @@ import { Download, Lock, LogOut, Search, Loader2, AlertTriangle, Users, Trending
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+type AdminLead = {
+  id: number;
+  nome: string;
+  email: string;
+  cidade: string;
+  whatsapp?: string | null;
+  origem?: string | null;
+  tipoObra: string;
+  tamanho: string;
+  fase: string;
+  projeto: string;
+  orcamento: string;
+  medo: string;
+  prazo: string;
+  investimento: string;
+  classificacao: string;
+  resultado?: string | null;
+  resultadoComplementar?: string | null;
+  leadScore?: number | null;
+  answers?: Record<string, unknown> | null;
+  createdAt: string;
+};
+
 export default function Admin() {
   const queryClient = useQueryClient();
   const [password, setPassword] = useState("");
@@ -129,11 +152,13 @@ export default function Admin() {
     );
   }
 
-  const leads = leadsData?.leads || [];
+  const leads = ((leadsData?.leads || []) as AdminLead[]);
   const filteredLeads = leads.filter(lead =>
     lead.nome.toLowerCase().includes(search.toLowerCase()) ||
     lead.email.toLowerCase().includes(search.toLowerCase()) ||
     (lead.whatsapp ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    getOrigemLabel(lead.origem).toLowerCase().includes(search.toLowerCase()) ||
+    (lead.resultado ?? "").toLowerCase().includes(search.toLowerCase()) ||
     lead.classificacao.toLowerCase().includes(search.toLowerCase())
   );
 
@@ -212,7 +237,7 @@ export default function Admin() {
           <Search className="h-5 w-5 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Buscar por nome, e-mail, telefone ou risco..."
+            placeholder="Buscar por nome, e-mail, telefone, origem ou resultado..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="bg-transparent border-none outline-none flex-1 font-medium placeholder:text-muted-foreground/60"
@@ -237,12 +262,12 @@ export default function Admin() {
               <thead className="bg-muted/60 text-muted-foreground uppercase tracking-wider font-semibold text-xs">
                 <tr>
                   <th className="px-6 py-4">Data</th>
+                  <th className="px-6 py-4">Origem</th>
                   <th className="px-6 py-4 min-w-[240px]">Usuário</th>
                   <th className="px-6 py-4">Telefone</th>
                   <th className="px-6 py-4">Resultado</th>
-                  <th className="px-6 py-4 min-w-[220px]">Obra</th>
-                  <th className="px-6 py-4 min-w-[260px]">Planejamento</th>
-                  <th className="px-6 py-4 min-w-[260px]">Execução</th>
+                  <th className="px-6 py-4 min-w-[260px]">Respostas principais</th>
+                  <th className="px-6 py-4 min-w-[260px]">Detalhes</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -250,6 +275,11 @@ export default function Admin() {
                   <tr key={lead.id} className="hover:bg-muted/40 transition-colors">
                     <td className="px-6 py-4 font-medium">
                       {format(new Date(lead.createdAt), "dd/MM/yyyy", { locale: ptBR })}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
+                        {getOrigemLabel(lead.origem)}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-semibold text-foreground">{lead.nome}</div>
@@ -270,21 +300,45 @@ export default function Admin() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <RiskBadge classificacao={lead.classificacao} />
+                      <div className="flex flex-col gap-2">
+                        <RiskBadge classificacao={lead.classificacao} />
+                        {lead.resultado ? (
+                          <div className="text-sm font-semibold text-foreground">{lead.resultado}</div>
+                        ) : null}
+                        {lead.resultadoComplementar ? (
+                          <div className="text-xs text-muted-foreground">Complementar: {lead.resultadoComplementar}</div>
+                        ) : null}
+                        {lead.leadScore != null ? (
+                          <div className="text-xs text-muted-foreground">Lead score: {lead.leadScore}</div>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      <AnswerLine label="Tipo" value={lead.tipoObra} />
-                      <AnswerLine label="Tamanho" value={lead.tamanho} />
-                      <AnswerLine label="Fase" value={lead.fase} />
-                    </td>
-                    <td className="px-6 py-4">
-                      <AnswerLine label="Projeto" value={lead.projeto} />
-                      <AnswerLine label="Orçamento" value={lead.orcamento} />
-                      <AnswerLine label="Investimento" value={lead.investimento} />
+                      {lead.origem === "casa_com_alma" ? (
+                        <>
+                          <AnswerLine label="Imóvel" value={lead.tipoObra} />
+                          <AnswerLine label="Dor" value={lead.projeto} />
+                          <AnswerLine label="Sensação" value={lead.orcamento} />
+                          <AnswerLine label="Imagem" value={lead.medo} />
+                        </>
+                      ) : (
+                        <>
+                          <AnswerLine label="Tipo" value={lead.tipoObra} />
+                          <AnswerLine label="Tamanho" value={lead.tamanho} />
+                          <AnswerLine label="Fase" value={lead.fase} />
+                          <AnswerLine label="Projeto" value={lead.projeto} />
+                        </>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <AnswerLine label="Prazo" value={lead.prazo} />
-                      <AnswerLine label="Maior medo" value={lead.medo} />
+                      <AnswerLine label="Investimento" value={lead.investimento} />
+                      {lead.origem !== "casa_com_alma" ? (
+                        <>
+                          <AnswerLine label="Orçamento" value={lead.orcamento} />
+                          <AnswerLine label="Maior medo" value={lead.medo} />
+                        </>
+                      ) : null}
                     </td>
                   </tr>
                 ))}
@@ -304,6 +358,15 @@ function AnswerLine({ label, value }: { label: string; value: string }) {
       <span className="text-foreground">{value}</span>
     </div>
   );
+}
+
+function getOrigemLabel(origem?: string | null) {
+  const map: Record<string, string> = {
+    custo_invisivel: "Custo Invisível",
+    casa_com_alma: "Casa com Alma",
+  };
+
+  return map[origem ?? "custo_invisivel"] ?? origem ?? "Custo Invisível";
 }
 
 function RiskBadge({ classificacao }: { classificacao: string }) {

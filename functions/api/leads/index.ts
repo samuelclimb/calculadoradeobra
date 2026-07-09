@@ -1,6 +1,7 @@
 import {
   badRequest,
   classificarRisco,
+  ensureLeadColumns,
   getSql,
   normalizeLeadRows,
   ok,
@@ -18,8 +19,9 @@ export async function onRequestPost(context: {
 }): Promise<Response> {
   try {
     const data = await readLeadInput(context.request);
-    const classificacao = classificarRisco(data);
+    const classificacao = data.classificacao ?? classificarRisco(data);
     const sql = getSql(context.env);
+    await ensureLeadColumns(sql);
 
     const rows = await sql`
       insert into leads (
@@ -27,6 +29,7 @@ export async function onRequestPost(context: {
         email,
         cidade,
         whatsapp,
+        origem,
         tipo_obra,
         tamanho,
         fase,
@@ -35,13 +38,18 @@ export async function onRequestPost(context: {
         medo,
         prazo,
         investimento,
-        classificacao
+        classificacao,
+        resultado,
+        resultado_complementar,
+        lead_score,
+        answers
       )
       values (
         ${data.nome},
         ${data.email},
         ${data.cidade},
         ${data.whatsapp ?? null},
+        ${data.origem ?? "custo_invisivel"},
         ${data.tipoObra},
         ${data.tamanho},
         ${data.fase},
@@ -50,7 +58,11 @@ export async function onRequestPost(context: {
         ${data.medo},
         ${data.prazo},
         ${data.investimento},
-        ${classificacao}
+        ${classificacao},
+        ${data.resultado ?? null},
+        ${data.resultadoComplementar ?? null},
+        ${data.leadScore ?? null},
+        ${data.answers ? JSON.stringify(data.answers) : null}
       )
       returning
         id,
@@ -58,6 +70,7 @@ export async function onRequestPost(context: {
         email,
         cidade,
         whatsapp,
+        origem,
         tipo_obra as "tipoObra",
         tamanho,
         fase,
@@ -67,6 +80,10 @@ export async function onRequestPost(context: {
         prazo,
         investimento,
         classificacao,
+        resultado,
+        resultado_complementar as "resultadoComplementar",
+        lead_score as "leadScore",
+        answers,
         created_at as "createdAt"
     `;
 
@@ -89,6 +106,7 @@ export async function onRequestGet(context: {
   }
 
   const sql = getSql(context.env);
+  await ensureLeadColumns(sql);
   const rows = await sql`
     select
       id,
@@ -96,6 +114,7 @@ export async function onRequestGet(context: {
       email,
       cidade,
       whatsapp,
+      origem,
       tipo_obra as "tipoObra",
       tamanho,
       fase,
@@ -105,6 +124,10 @@ export async function onRequestGet(context: {
       prazo,
       investimento,
       classificacao,
+      resultado,
+      resultado_complementar as "resultadoComplementar",
+      lead_score as "leadScore",
+      answers,
       created_at as "createdAt"
     from leads
     order by created_at desc

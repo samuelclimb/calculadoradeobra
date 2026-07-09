@@ -1,4 +1,5 @@
 import {
+  ensureLeadColumns,
   getSql,
   ok,
   unauthorized,
@@ -15,6 +16,7 @@ export async function onRequestGet(context: {
   }
 
   const sql = getSql(context.env);
+  await ensureLeadColumns(sql);
   const totalRows = await sql`select count(*)::int as count from leads`;
   const classRows = await sql`
     select classificacao, count(*)::int as count

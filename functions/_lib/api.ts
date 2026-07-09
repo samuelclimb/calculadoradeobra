@@ -12,6 +12,7 @@ type LeadRow = {
   email: string;
   cidade: string;
   whatsapp: string | null;
+  origem?: string | null;
   tipoObra: string;
   tamanho: string;
   fase: string;
@@ -21,6 +22,10 @@ type LeadRow = {
   prazo: string;
   investimento: string;
   classificacao: "baixo" | "medio" | "alto" | "critico";
+  resultado?: string | null;
+  resultadoComplementar?: string | null;
+  leadScore?: number | null;
+  answers?: Record<string, unknown> | null;
   createdAt: string | Date;
 };
 
@@ -29,6 +34,7 @@ type LeadInput = {
   email: string;
   cidade: string;
   whatsapp?: string;
+  origem?: string;
   tipoObra: string;
   tamanho: string;
   fase: string;
@@ -37,6 +43,11 @@ type LeadInput = {
   medo: string;
   prazo: string;
   investimento: string;
+  classificacao?: "baixo" | "medio" | "alto" | "critico";
+  resultado?: string;
+  resultadoComplementar?: string;
+  leadScore?: number;
+  answers?: Record<string, unknown>;
 };
 
 const requiredLeadFields: Array<keyof LeadInput> = [
@@ -87,6 +98,17 @@ export function getSql(env: Env) {
   return neon(env.DATABASE_URL);
 }
 
+export async function ensureLeadColumns(sql: ReturnType<typeof neon>) {
+  await sql`
+    alter table leads
+      add column if not exists origem text not null default 'custo_invisivel',
+      add column if not exists resultado text,
+      add column if not exists resultado_complementar text,
+      add column if not exists lead_score integer,
+      add column if not exists answers jsonb
+  `;
+}
+
 function normalizeLeadRow(row: LeadRow): LeadRow {
   return {
     ...row,
@@ -117,6 +139,38 @@ export async function readLeadInput(request: Request): Promise<LeadInput> {
   const whatsapp = (body as Record<string, unknown>).whatsapp;
   if (whatsapp !== undefined && typeof whatsapp !== "string") {
     throw new Error("Campo inválido: whatsapp");
+  }
+
+  const origem = (body as Record<string, unknown>).origem;
+  if (origem !== undefined && typeof origem !== "string") {
+    throw new Error("Campo inválido: origem");
+  }
+
+  const resultado = (body as Record<string, unknown>).resultado;
+  if (resultado !== undefined && typeof resultado !== "string") {
+    throw new Error("Campo inválido: resultado");
+  }
+
+  const resultadoComplementar = (body as Record<string, unknown>)
+    .resultadoComplementar;
+  if (
+    resultadoComplementar !== undefined &&
+    typeof resultadoComplementar !== "string"
+  ) {
+    throw new Error("Campo inválido: resultadoComplementar");
+  }
+
+  const leadScore = (body as Record<string, unknown>).leadScore;
+  if (leadScore !== undefined && typeof leadScore !== "number") {
+    throw new Error("Campo inválido: leadScore");
+  }
+
+  const answers = (body as Record<string, unknown>).answers;
+  if (
+    answers !== undefined &&
+    (!answers || typeof answers !== "object" || Array.isArray(answers))
+  ) {
+    throw new Error("Campo inválido: answers");
   }
 
   return body as LeadInput;
