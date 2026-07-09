@@ -1,5 +1,3 @@
-import { Link } from "wouter";
-
 type PrivacyConsentProps = {
   id: string;
   checked: boolean;
@@ -22,9 +20,14 @@ export function PrivacyConsent({ id, checked, onCheckedChange }: PrivacyConsentP
       />
       <span>
         Li e aceito a{" "}
-        <Link href="/privacidade" className="font-medium text-primary underline underline-offset-4">
+        <a
+          href="/privacidade"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-primary underline underline-offset-4"
+        >
           Política de Privacidade
-        </Link>
+        </a>
         . Autorizo o tratamento dos meus dados para gerar e armazenar este diagnóstico, conforme a LGPD.
       </span>
     </label>
