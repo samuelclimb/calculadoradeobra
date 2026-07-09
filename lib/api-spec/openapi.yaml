@@ -1,0 +1,280 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: leads
+    description: Lead management
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /leads:
+    post:
+      operationId: createLead
+      tags: [leads]
+      summary: Cria um lead
+      description: Salva um lead com as respostas da calculadora e classificação de risco
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LeadInput"
+      responses:
+        "201":
+          description: Lead criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Lead"
+        "400":
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    get:
+      operationId: listLeads
+      tags: [leads]
+      summary: Lista todos os leads (admin)
+      description: Retorna todos os leads. Requer cabeçalho x-admin-password.
+      parameters:
+        - name: x-admin-password
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista de leads
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadList"
+        "401":
+          description: Não autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /leads/export:
+    get:
+      operationId: exportLeads
+      tags: [leads]
+      summary: Exporta leads em CSV (admin)
+      description: Retorna todos os leads como arquivo CSV. Requer cabeçalho x-admin-password.
+      parameters:
+        - name: x-admin-password
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Arquivo CSV
+          content:
+            text/csv:
+              schema:
+                type: string
+        "401":
+          description: Não autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /leads/stats:
+    get:
+      operationId: getLeadsStats
+      tags: [leads]
+      summary: Estatísticas dos leads (admin)
+      description: Retorna contagens por classificação de risco. Requer cabeçalho x-admin-password.
+      parameters:
+        - name: x-admin-password
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Estatísticas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeadStats"
+        "401":
+          description: Não autorizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    LeadInput:
+      type: object
+      properties:
+        nome:
+          type: string
+        email:
+          type: string
+        cidade:
+          type: string
+        whatsapp:
+          type: string
+        tipoObra:
+          type: string
+        tamanho:
+          type: string
+        fase:
+          type: string
+        projeto:
+          type: string
+        orcamento:
+          type: string
+        medo:
+          type: string
+        prazo:
+          type: string
+        investimento:
+          type: string
+      required:
+        - nome
+        - email
+        - cidade
+        - tipoObra
+        - tamanho
+        - fase
+        - projeto
+        - orcamento
+        - medo
+        - prazo
+        - investimento
+
+    Lead:
+      type: object
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        email:
+          type: string
+        cidade:
+          type: string
+        whatsapp:
+          type: ["string", "null"]
+        tipoObra:
+          type: string
+        tamanho:
+          type: string
+        fase:
+          type: string
+        projeto:
+          type: string
+        orcamento:
+          type: string
+        medo:
+          type: string
+        prazo:
+          type: string
+        investimento:
+          type: string
+        classificacao:
+          type: string
+          enum: [baixo, medio, alto, critico]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - nome
+        - email
+        - cidade
+        - tipoObra
+        - tamanho
+        - fase
+        - projeto
+        - orcamento
+        - medo
+        - prazo
+        - investimento
+        - classificacao
+        - createdAt
+
+    LeadList:
+      type: object
+      properties:
+        leads:
+          type: array
+          items:
+            $ref: "#/components/schemas/Lead"
+        total:
+          type: integer
+      required:
+        - leads
+        - total
+
+    LeadStats:
+      type: object
+      properties:
+        total:
+          type: integer
+        porClassificacao:
+          type: object
+          properties:
+            baixo:
+              type: integer
+            medio:
+              type: integer
+            alto:
+              type: integer
+            critico:
+              type: integer
+          required:
+            - baixo
+            - medio
+            - alto
+            - critico
+        ultimosSete:
+          type: integer
+      required:
+        - total
+        - porClassificacao
+        - ultimosSete
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
