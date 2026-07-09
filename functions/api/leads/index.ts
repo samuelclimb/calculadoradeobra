@@ -101,38 +101,44 @@ export async function onRequestGet(context: {
   request: Request;
   env: Env;
 }): Promise<Response> {
-  if (!(await verifyAdmin(context.request, context.env))) {
-    return unauthorized();
+  try {
+    if (!(await verifyAdmin(context.request, context.env))) {
+      return unauthorized();
+    }
+
+    const sql = getSql(context.env);
+    await ensureLeadColumns(sql);
+    const rows = await sql`
+      select
+        id,
+        nome,
+        email,
+        cidade,
+        whatsapp,
+        origem,
+        tipo_obra as "tipoObra",
+        tamanho,
+        fase,
+        projeto,
+        orcamento,
+        medo,
+        prazo,
+        investimento,
+        classificacao,
+        resultado,
+        resultado_complementar as "resultadoComplementar",
+        lead_score as "leadScore",
+        answers,
+        created_at as "createdAt"
+      from leads
+      order by created_at desc
+    `;
+    const leads = normalizeLeadRows(rows as LeadRow[]);
+
+    return ok({ leads, total: leads.length });
+  } catch (error) {
+    return serverError(
+      error instanceof Error ? error.message : "Erro ao listar leads",
+    );
   }
-
-  const sql = getSql(context.env);
-  await ensureLeadColumns(sql);
-  const rows = await sql`
-    select
-      id,
-      nome,
-      email,
-      cidade,
-      whatsapp,
-      origem,
-      tipo_obra as "tipoObra",
-      tamanho,
-      fase,
-      projeto,
-      orcamento,
-      medo,
-      prazo,
-      investimento,
-      classificacao,
-      resultado,
-      resultado_complementar as "resultadoComplementar",
-      lead_score as "leadScore",
-      answers,
-      created_at as "createdAt"
-    from leads
-    order by created_at desc
-  `;
-  const leads = normalizeLeadRows(rows as LeadRow[]);
-
-  return ok({ leads, total: leads.length });
 }
