@@ -1,5 +1,6 @@
+import * as XLSX from "xlsx";
+
 import {
-  escapeCsv,
   ensureLeadColumns,
   formatarClassificacao,
   getSql,
@@ -47,62 +48,178 @@ export async function onRequestGet(context: {
   `;
   const leads = normalizeLeadRows(rows as LeadRow[]);
 
-  const headers = [
+  const overviewRows = leads.map((lead) => ({
+    ID: lead.id,
+    Data: formatDate(lead.createdAt),
+    Origem: getOrigemLabel(lead.origem),
+    Nome: lead.nome,
+    Email: lead.email,
+    Cidade: lead.cidade,
+    WhatsApp: lead.whatsapp ?? "",
+    Resultado: formatarClassificacao(lead.classificacao),
+    "Conceito principal": lead.resultado ?? "",
+    "Conceito complementar": lead.resultadoComplementar ?? "",
+    "Lead score": lead.leadScore ?? "",
+    "Tipo de obra / imóvel": lead.tipoObra,
+    Tamanho: lead.tamanho,
+    Fase: lead.fase,
+    Projeto: lead.projeto,
+    "Orçamento / sensação": lead.orcamento,
+    "Medo / imagem": lead.medo,
+    Prazo: lead.prazo,
+    Investimento: lead.investimento,
+  }));
+
+  const answerRows = leads.flatMap((lead) => {
+    const answers = lead.answers ?? {};
+    const entries = Object.entries(answers);
+
+    if (entries.length === 0) {
+      return [
+        {
+          ID: lead.id,
+          Data: formatDate(lead.createdAt),
+          Origem: getOrigemLabel(lead.origem),
+          Nome: lead.nome,
+          Pergunta: "Sem respostas completas",
+          Resposta: "",
+        },
+      ];
+    }
+
+    return entries.map(([key, value]) => ({
+      ID: lead.id,
+      Data: formatDate(lead.createdAt),
+      Origem: getOrigemLabel(lead.origem),
+      Nome: lead.nome,
+      Pergunta: formatAnswerKey(key),
+      Resposta: formatAnswerValue(value),
+    }));
+  });
+
+  const overviewColumns = [
     "ID",
+    "Data",
+    "Origem",
     "Nome",
     "Email",
     "Cidade",
     "WhatsApp",
-    "Origem",
-    "Tipo de Obra",
+    "Resultado",
+    "Conceito principal",
+    "Conceito complementar",
+    "Lead score",
+    "Tipo de obra / imóvel",
     "Tamanho",
     "Fase",
     "Projeto",
-    "Orçamento",
-    "Medo",
+    "Orçamento / sensação",
+    "Medo / imagem",
     "Prazo",
     "Investimento",
-    "Resultado do diagnóstico",
-    "Resultado principal",
-    "Resultado complementar",
-    "Lead score",
-    "Respostas completas",
-    "Data",
   ];
+  const answerColumns = ["ID", "Data", "Origem", "Nome", "Pergunta", "Resposta"];
+  const workbook = XLSX.utils.book_new();
+  const overviewSheet = XLSX.utils.json_to_sheet(overviewRows, { header: overviewColumns });
+  const answersSheet = XLSX.utils.json_to_sheet(answerRows, { header: answerColumns });
 
-  const csvRows = leads.map((lead) =>
-    [
-      String(lead.id),
-      lead.nome,
-      lead.email,
-      lead.cidade,
-      lead.whatsapp ?? "",
-      lead.origem ?? "custo_invisivel",
-      lead.tipoObra,
-      lead.tamanho,
-      lead.fase,
-      lead.projeto,
-      lead.orcamento,
-      lead.medo,
-      lead.prazo,
-      lead.investimento,
-      formatarClassificacao(lead.classificacao),
-      lead.resultado ?? "",
-      lead.resultadoComplementar ?? "",
-      lead.leadScore == null ? "" : String(lead.leadScore),
-      lead.answers ? JSON.stringify(lead.answers) : "",
-      String(lead.createdAt),
-    ]
-      .map(escapeCsv)
-      .join(","),
-  );
+  overviewSheet["!cols"] = [
+    { wch: 8 },
+    { wch: 18 },
+    { wch: 18 },
+    { wch: 28 },
+    { wch: 32 },
+    { wch: 22 },
+    { wch: 18 },
+    { wch: 16 },
+    { wch: 24 },
+    { wch: 24 },
+    { wch: 12 },
+    { wch: 24 },
+    { wch: 18 },
+    { wch: 28 },
+    { wch: 28 },
+    { wch: 28 },
+    { wch: 28 },
+    { wch: 22 },
+    { wch: 20 },
+  ];
+  overviewSheet["!autofilter"] = { ref: `A1:S${overviewRows.length + 1}` };
 
-  const csv = [headers.join(","), ...csvRows].join("\n");
+  answersSheet["!cols"] = [
+    { wch: 8 },
+    { wch: 18 },
+    { wch: 18 },
+    { wch: 28 },
+    { wch: 28 },
+    { wch: 80 },
+  ];
+  answersSheet["!autofilter"] = { ref: `A1:F${answerRows.length + 1}` };
 
-  return new Response(csv, {
+  XLSX.utils.book_append_sheet(workbook, overviewSheet, "Diagnosticos");
+  XLSX.utils.book_append_sheet(workbook, answersSheet, "Respostas");
+
+  const file = XLSX.write(workbook, {
+    bookType: "xlsx",
+    type: "array",
+    compression: true,
+  }) as ArrayBuffer;
+
+  return new Response(file, {
     headers: {
-      "content-type": "text/csv; charset=utf-8",
-      "content-disposition": 'attachment; filename="leads-calculadora.csv"',
+      "content-type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "content-disposition": 'attachment; filename="diagnosticos-calculadora.xlsx"',
     },
   });
+}
+
+function getOrigemLabel(origem?: string | null) {
+  const map: Record<string, string> = {
+    custo_invisivel: "Custo Invisível",
+    casa_com_alma: "Casa com Alma",
+  };
+
+  return map[origem ?? "custo_invisivel"] ?? origem ?? "Custo Invisível";
+}
+
+function formatDate(value: string | Date) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+
+  return date.toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatAnswerKey(key: string) {
+  const labels: Record<string, string> = {
+    tipoImovel: "Tipo de imóvel",
+    dor: "Dor principal",
+    sensacao: "Sensação desejada",
+    imagem: "Imagem escolhida",
+    investimento: "Investimento",
+    prazo: "Prazo",
+    hibrido: "Resultado híbrido",
+    indices: "Índices Casa com Alma",
+    lgpdConsent: "Consentimento LGPD",
+    privacyAcceptedAt: "Data do aceite LGPD",
+  };
+
+  return labels[key] ?? key.replace(/([A-Z])/g, " $1").trim();
+}
+
+function formatAnswerValue(value: unknown): string {
+  if (value == null) return "";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+
+  return JSON.stringify(value);
 }

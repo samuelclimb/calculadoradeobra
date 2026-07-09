@@ -80,7 +80,7 @@ export default function Admin() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `leads-export-${new Date().toISOString().split('T')[0]}.csv`;
+        a.download = `diagnosticos-calculadora-${new Date().toISOString().split('T')[0]}.xlsx`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -88,7 +88,7 @@ export default function Admin() {
       })
       .catch(err => {
         console.error(err);
-        alert('Erro ao exportar CSV. Verifique a senha.');
+        alert('Erro ao exportar Excel. Verifique a senha.');
       });
   };
 
@@ -190,7 +190,7 @@ export default function Admin() {
             className="inline-flex items-center justify-center gap-2 bg-primary text-primary-foreground rounded-full px-6 py-3 font-medium hover:bg-primary/90 transition-colors self-start md:self-auto"
           >
             <Download className="h-4 w-4" />
-            Exportar CSV
+            Exportar Excel
           </button>
         </div>
 

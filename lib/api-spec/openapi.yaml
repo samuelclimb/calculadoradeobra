@@ -81,8 +81,8 @@ paths:
     get:
       operationId: exportLeads
       tags: [leads]
-      summary: Exporta leads em CSV (admin)
-      description: Retorna todos os leads como arquivo CSV. Requer cabeçalho x-admin-password.
+      summary: Exporta leads em Excel (admin)
+      description: Retorna todos os leads como arquivo Excel (.xlsx). Requer cabeçalho x-admin-password.
       parameters:
         - name: x-admin-password
           in: header
@@ -91,11 +91,12 @@ paths:
             type: string
       responses:
         "200":
-          description: Arquivo CSV
+          description: Arquivo Excel
           content:
-            text/csv:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
               schema:
                 type: string
+                format: binary
         "401":
           description: Não autorizado
           content:
