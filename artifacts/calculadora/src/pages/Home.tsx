@@ -136,7 +136,6 @@ export default function Home() {
 
       <footer className="border-t border-border py-8 px-6 bg-card text-muted-foreground text-sm text-center">
         <p>Diagnóstico Financeiro de Obras. Uma ferramenta de análise de risco.</p>
-        <Link href="/admin" className="text-xs hover:text-foreground mt-4 inline-block underline underline-offset-4">Área Administrativa</Link>
       </footer>
     </div>
   );

@@ -9,10 +9,12 @@ if (!rawPort) {
   );
 }
 
+const adminPasswordHash = process.env["ADMIN_PASSWORD_HASH"];
 const adminPassword = process.env["ADMIN_PASSWORD"];
-if (!adminPassword || adminPassword.length < 8) {
+
+if (!adminPasswordHash && (!adminPassword || adminPassword.length < 8)) {
   throw new Error(
-    "ADMIN_PASSWORD environment variable is required and must be at least 8 characters. Set it as a secret before starting the server.",
+    "ADMIN_PASSWORD_HASH is required. As a temporary fallback, ADMIN_PASSWORD must be at least 8 characters.",
   );
 }
 

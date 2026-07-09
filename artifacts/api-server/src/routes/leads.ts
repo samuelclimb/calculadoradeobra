@@ -1,6 +1,7 @@
 import { Router, type IRouter } from "express";
 import { db, leadsTable } from "@workspace/db";
 import { desc, sql } from "drizzle-orm";
+import crypto from "node:crypto";
 import {
   CreateLeadBody,
   CreateLeadResponse,
@@ -12,6 +13,46 @@ import {
 } from "@workspace/api-zod";
 
 const router: IRouter = Router();
+
+const ADMIN_HASH_PREFIX = "scrypt";
+
+function hashAdminPassword(password: string, salt: string): string {
+  return crypto
+    .scryptSync(password, salt, 64, { N: 16384, r: 8, p: 1 })
+    .toString("hex");
+}
+
+function timingSafeEqualText(a: string, b: string): boolean {
+  const aBuffer = Buffer.from(a, "utf8");
+  const bBuffer = Buffer.from(b, "utf8");
+
+  if (aBuffer.length !== bBuffer.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(aBuffer, bBuffer);
+}
+
+function verifyAdminPassword(password: string): boolean {
+  const adminPasswordHash = process.env["ADMIN_PASSWORD_HASH"];
+
+  if (adminPasswordHash) {
+    const [algorithm, salt, expectedHash] = adminPasswordHash.split("$");
+    if (algorithm !== ADMIN_HASH_PREFIX || !salt || !expectedHash) {
+      return false;
+    }
+
+    const actualHash = hashAdminPassword(password, salt);
+    return timingSafeEqualText(actualHash, expectedHash);
+  }
+
+  const adminPassword = process.env["ADMIN_PASSWORD"];
+  if (!adminPassword) {
+    return false;
+  }
+
+  return timingSafeEqualText(password, adminPassword);
+}
 
 // Classify risk based on calculator responses
 // Each risk factor contributes points; final score determines classification.
@@ -63,6 +104,17 @@ function classificarRisco(data: {
   return "baixo";
 }
 
+function formatarClassificacao(classificacao: string): string {
+  const labels: Record<string, string> = {
+    baixo: "Baixo",
+    medio: "Médio",
+    alto: "Alto",
+    critico: "Crítico",
+  };
+
+  return labels[classificacao] ?? classificacao;
+}
+
 // Middleware to validate admin password
 function requireAdmin(req: any, res: any, next: any): void {
   const headerResult = ListLeadsHeader.safeParse(req.headers);
@@ -71,14 +123,13 @@ function requireAdmin(req: any, res: any, next: any): void {
     return;
   }
 
-  const adminPassword = process.env["ADMIN_PASSWORD"];
-  if (!adminPassword) {
-    req.log.error("ADMIN_PASSWORD env var not set");
+  if (!process.env["ADMIN_PASSWORD_HASH"] && !process.env["ADMIN_PASSWORD"]) {
+    req.log.error("Admin password env var not set");
     res.status(500).json({ error: "Configuração de servidor inválida" });
     return;
   }
 
-  if (headerResult.data["x-admin-password"] !== adminPassword) {
+  if (!verifyAdminPassword(headerResult.data["x-admin-password"])) {
     res.status(401).json({ error: "Senha de administrador inválida" });
     return;
   }
@@ -160,7 +211,7 @@ router.get("/leads/export", requireAdmin, async (req, res): Promise<void> => {
     "Medo",
     "Prazo",
     "Investimento",
-    "Classificação",
+    "Resultado do diagnóstico",
     "Data",
   ];
 
@@ -191,7 +242,7 @@ router.get("/leads/export", requireAdmin, async (req, res): Promise<void> => {
     lead.medo,
     lead.prazo,
     lead.investimento,
-    lead.classificacao,
+    formatarClassificacao(lead.classificacao),
     lead.createdAt.toISOString(),
   ].map(escapeCsv).join(","));
 

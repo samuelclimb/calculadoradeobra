@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useListLeads, useGetLeadsStats, getListLeadsQueryKey, getGetLeadsStatsQueryKey } from "@workspace/api-client-react";
-import { Download, Lock, LogOut, Search, Loader2, AlertTriangle, Users, TrendingUp, AlertOctagon, Leaf } from "lucide-react";
+import { Download, Lock, LogOut, Search, Loader2, AlertTriangle, Users, TrendingUp, AlertOctagon, Leaf, Mail, Phone } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -132,7 +132,9 @@ export default function Admin() {
   const leads = leadsData?.leads || [];
   const filteredLeads = leads.filter(lead =>
     lead.nome.toLowerCase().includes(search.toLowerCase()) ||
-    lead.email.toLowerCase().includes(search.toLowerCase())
+    lead.email.toLowerCase().includes(search.toLowerCase()) ||
+    (lead.whatsapp ?? "").toLowerCase().includes(search.toLowerCase()) ||
+    lead.classificacao.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -154,8 +156,8 @@ export default function Admin() {
       <main className="flex-1 p-6 md:p-10 container mx-auto max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
           <div>
-            <h1 className="font-serif text-3xl font-semibold tracking-tight mb-2">Leads capturados</h1>
-            <p className="text-muted-foreground">Monitoramento de risco financeiro de potenciais clientes.</p>
+            <h1 className="font-serif text-3xl font-semibold tracking-tight mb-2">Diagnósticos capturados</h1>
+            <p className="text-muted-foreground">Nome, contato, resultado e respostas selecionadas pelos usuários.</p>
           </div>
 
           <button
@@ -210,7 +212,7 @@ export default function Admin() {
           <Search className="h-5 w-5 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Buscar por nome ou e-mail..."
+            placeholder="Buscar por nome, e-mail, telefone ou risco..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="bg-transparent border-none outline-none flex-1 font-medium placeholder:text-muted-foreground/60"
@@ -235,10 +237,12 @@ export default function Admin() {
               <thead className="bg-muted/60 text-muted-foreground uppercase tracking-wider font-semibold text-xs">
                 <tr>
                   <th className="px-6 py-4">Data</th>
-                  <th className="px-6 py-4">Nome / Contato</th>
-                  <th className="px-6 py-4">Local</th>
-                  <th className="px-6 py-4">Obra / Fase</th>
-                  <th className="px-6 py-4">Risco</th>
+                  <th className="px-6 py-4 min-w-[240px]">Usuário</th>
+                  <th className="px-6 py-4">Telefone</th>
+                  <th className="px-6 py-4">Resultado</th>
+                  <th className="px-6 py-4 min-w-[220px]">Obra</th>
+                  <th className="px-6 py-4 min-w-[260px]">Planejamento</th>
+                  <th className="px-6 py-4 min-w-[260px]">Execução</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -249,16 +253,38 @@ export default function Admin() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-semibold text-foreground">{lead.nome}</div>
-                      <div className="text-muted-foreground">{lead.email}</div>
-                      {lead.whatsapp && <div className="text-muted-foreground text-xs mt-1">{lead.whatsapp}</div>}
+                      <div className="text-muted-foreground flex items-center gap-2 mt-1">
+                        <Mail className="h-3.5 w-3.5" />
+                        {lead.email}
+                      </div>
+                      <div className="text-muted-foreground text-xs mt-1">{lead.cidade}</div>
                     </td>
-                    <td className="px-6 py-4">{lead.cidade}</td>
                     <td className="px-6 py-4">
-                      <div className="font-medium">{lead.tipoObra}</div>
-                      <div className="text-muted-foreground text-xs">{lead.fase}</div>
+                      {lead.whatsapp ? (
+                        <span className="inline-flex items-center gap-2 font-medium">
+                          <Phone className="h-3.5 w-3.5 text-primary" />
+                          {lead.whatsapp}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">Não informado</span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <RiskBadge classificacao={lead.classificacao} />
+                    </td>
+                    <td className="px-6 py-4">
+                      <AnswerLine label="Tipo" value={lead.tipoObra} />
+                      <AnswerLine label="Tamanho" value={lead.tamanho} />
+                      <AnswerLine label="Fase" value={lead.fase} />
+                    </td>
+                    <td className="px-6 py-4">
+                      <AnswerLine label="Projeto" value={lead.projeto} />
+                      <AnswerLine label="Orçamento" value={lead.orcamento} />
+                      <AnswerLine label="Investimento" value={lead.investimento} />
+                    </td>
+                    <td className="px-6 py-4">
+                      <AnswerLine label="Prazo" value={lead.prazo} />
+                      <AnswerLine label="Maior medo" value={lead.medo} />
                     </td>
                   </tr>
                 ))}
@@ -267,6 +293,15 @@ export default function Admin() {
           )}
         </div>
       </main>
+    </div>
+  );
+}
+
+function AnswerLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="mb-1.5 last:mb-0">
+      <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{label}: </span>
+      <span className="text-foreground">{value}</span>
     </div>
   );
 }
