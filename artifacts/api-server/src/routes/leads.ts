@@ -37,7 +37,10 @@ function verifyAdminPassword(password: string): boolean {
   const adminPasswordHash = process.env["ADMIN_PASSWORD_HASH"];
 
   if (adminPasswordHash) {
-    const [algorithm, salt, expectedHash] = adminPasswordHash.split("$");
+    const parts = adminPasswordHash.includes(":")
+      ? adminPasswordHash.split(":")
+      : adminPasswordHash.split("$");
+    const [algorithm, salt, expectedHash] = parts;
     if (algorithm !== ADMIN_HASH_PREFIX || !salt || !expectedHash) {
       return false;
     }
