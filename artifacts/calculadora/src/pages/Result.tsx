@@ -199,24 +199,13 @@ export default function Result() {
           </section>
 
           <section className="mt-6 rounded-2xl border border-primary/15 bg-primary p-7 text-primary-foreground md:p-8">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <p className="font-serif text-2xl font-semibold leading-tight">
-                  Use este diagnóstico como uma pausa inteligente.
-                </p>
-                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-primary-foreground/80">
-                  Antes de contratar, comprar ou iniciar a próxima etapa, revise o que ainda não está claro. Quanto mais
-                  objetivo for o plano, menor a chance de pequenos detalhes virarem gasto extra.
-                </p>
-              </div>
-              <Link
-                href="/casa-com-alma"
-                className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-white px-6 py-4 font-semibold text-primary transition hover:bg-white/90"
-              >
-                <Leaf className="h-5 w-5" strokeWidth={1.5} />
-                Ver Casa com Alma
-              </Link>
-            </div>
+            <p className="font-serif text-2xl font-semibold leading-tight">
+              Use este diagnóstico como uma pausa inteligente.
+            </p>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-primary-foreground/80">
+              Antes de contratar, comprar ou iniciar a próxima etapa, revise o que ainda não está claro. Quanto mais
+              objetivo for o plano, menor a chance de pequenos detalhes virarem gasto extra.
+            </p>
           </section>
 
           <div className="mt-10 flex flex-col items-center gap-6">
