@@ -137,8 +137,6 @@ export async function onRequestGet(context: {
 
     return ok({ leads, total: leads.length });
   } catch (error) {
-    return serverError(
-      error instanceof Error ? error.message : "Erro ao listar leads",
-    );
+    return serverError();
   }
 }
