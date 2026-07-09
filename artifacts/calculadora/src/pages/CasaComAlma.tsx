@@ -13,6 +13,7 @@ import {
   Waves,
 } from "lucide-react";
 
+import { PrivacyConsent } from "@/components/PrivacyConsent";
 import {
   calculateCasaResult,
   casaQuestions,
@@ -32,6 +33,7 @@ export default function CasaComAlma() {
   const [email, setEmail] = useState("");
   const [cidade, setCidade] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(false);
 
@@ -55,7 +57,7 @@ export default function CasaComAlma() {
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!nome || !email || !cidade) return;
+    if (!nome || !email || !cidade || !privacyAccepted) return;
 
     setIsSubmitting(true);
     setSubmitError(false);
@@ -90,6 +92,8 @@ export default function CasaComAlma() {
         prazo: answers.prazo,
         hibrido: result.hibrido,
         indices: result.indices,
+        lgpdConsent: true,
+        privacyAcceptedAt: new Date().toISOString(),
       },
     };
 
@@ -152,6 +156,18 @@ export default function CasaComAlma() {
       <main className="container mx-auto flex min-h-[100dvh] max-w-5xl flex-col justify-center px-6 pb-12 pt-24">
         {!isFinalStep ? (
           <section className="mx-auto flex w-full max-w-4xl animate-in flex-col gap-9 fade-in slide-in-from-bottom-4 duration-500">
+            {currentStep === 0 && (
+              <div className="rounded-2xl border border-primary/15 bg-primary/5 p-5 text-foreground">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">
+                  Bem-vindo
+                </p>
+                <p className="leading-relaxed text-muted-foreground">
+                  Em poucos passos, este diagnóstico vai revelar qual conceito arquitetônico combina com a forma como
+                  você deseja viver.
+                </p>
+              </div>
+            )}
+
             <div className="flex items-start gap-4">
               <div className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary font-serif text-sm font-semibold text-primary-foreground">
                 {currentStep + 1}
@@ -264,13 +280,19 @@ export default function CasaComAlma() {
 
               {submitError && (
                 <div className="rounded-xl border border-accent/20 bg-accent/10 p-4 text-sm font-medium text-accent">
-                  Seu resultado foi gerado. Se o salvamento falhar, tente reenviar depois pelo atendimento.
+                  Seu resultado foi gerado, mas houve uma falha ao salvar os dados. Tente reenviar depois.
                 </div>
               )}
 
+              <PrivacyConsent
+                id="casa-lgpd-consent"
+                checked={privacyAccepted}
+                onCheckedChange={setPrivacyAccepted}
+              />
+
               <button
                 type="submit"
-                disabled={isSubmitting || !nome || !email || !cidade}
+                disabled={isSubmitting || !nome || !email || !cidade || !privacyAccepted}
                 className="flex w-full items-center justify-center gap-3 rounded-full bg-primary py-5 text-lg font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {isSubmitting ? (

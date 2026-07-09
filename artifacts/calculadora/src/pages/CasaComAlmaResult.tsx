@@ -7,7 +7,6 @@ import {
   Heart,
   Home,
   Leaf,
-  MessageCircle,
   Sparkles,
   Star,
   Sun,
@@ -162,20 +161,13 @@ export default function CasaComAlmaResult() {
         </section>
 
         <section className="mt-6 rounded-2xl border border-primary/15 bg-primary p-7 text-primary-foreground md:p-8">
-          <div className="grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
+          <div className="grid gap-6 md:items-center">
             <div>
               <p className="text-lg leading-relaxed">{meta.fechamento}</p>
               <p className="mt-3 text-sm text-primary-foreground/80">
-                Seu resultado é apenas o começo. Agora dá para transformar esse conceito em uma análise completa e personalizada.
+                Guarde este conceito como referência para escolhas de layout, materiais, iluminação e atmosfera da sua casa.
               </p>
             </div>
-            <a
-              href="https://wa.me/"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-4 font-semibold text-primary transition hover:bg-white/90"
-            >
-              <MessageCircle className="h-5 w-5" strokeWidth={1.5} />
-              Quero uma análise personalizada
-            </a>
           </div>
         </section>
 

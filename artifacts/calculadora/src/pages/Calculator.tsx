@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { ArrowLeft, ArrowRight, CheckCircle2, Leaf, Loader2 } from "lucide-react";
 import { useCreateLead, type LeadInput } from "@workspace/api-client-react";
+import { PrivacyConsent } from "@/components/PrivacyConsent";
 
 type Question = {
   id: string;
@@ -91,6 +92,7 @@ export default function Calculator() {
   const [email, setEmail] = useState("");
   const [cidade, setCidade] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
+  const [privacyAccepted, setPrivacyAccepted] = useState(false);
 
   const totalSteps = questions.length + 1; // +1 for the personal data step
   const progress = ((currentStep + 1) / totalSteps) * 100;
@@ -116,7 +118,7 @@ export default function Calculator() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!nome || !email || !cidade) return;
+    if (!nome || !email || !cidade || !privacyAccepted) return;
 
     const leadInput: LeadInput = {
       nome,
@@ -314,6 +316,12 @@ export default function Calculator() {
                 </div>
               </div>
 
+              <PrivacyConsent
+                id="lgpd-consent"
+                checked={privacyAccepted}
+                onCheckedChange={setPrivacyAccepted}
+              />
+
               {createLead.isError && (
                 <div className="p-4 rounded-xl bg-destructive/10 text-destructive border border-destructive/20 text-sm font-medium">
                   Ocorreu um erro ao processar seu diagnóstico. Tente novamente.
@@ -322,7 +330,7 @@ export default function Calculator() {
 
               <button
                 type="submit"
-                disabled={isSubmitting || !nome || !email || !cidade}
+                disabled={isSubmitting || !nome || !email || !cidade || !privacyAccepted}
                 className="w-full bg-primary text-primary-foreground rounded-full py-5 text-lg font-medium flex items-center justify-center gap-3 hover:bg-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { AlertOctagon, ArrowLeft, CheckCircle2, AlertTriangle, Info, HardHat, Leaf } from "lucide-react";
+import { AlertOctagon, ArrowLeft, CheckCircle2, AlertTriangle, Info, Leaf } from "lucide-react";
 import type { Lead } from "@workspace/api-client-react";
 
 export default function Result() {
@@ -133,12 +133,8 @@ export default function Result() {
           <div className="flex flex-col items-center gap-6">
             <div className="w-full border-t border-border"></div>
             <p className="text-center text-muted-foreground max-w-lg mb-2">
-              Precisa de ajuda profissional para organizar o escopo e reduzir esse risco?
+              Guarde este diagnóstico como referência para revisar escopo, orçamento e decisões antes de avançar.
             </p>
-            <button className="bg-primary text-primary-foreground rounded-full px-8 py-4 font-medium text-lg hover:bg-primary/90 transition-colors inline-flex items-center gap-3 w-full sm:w-auto justify-center">
-              <HardHat className="h-5 w-5" strokeWidth={1.5} />
-              Falar com um especialista
-            </button>
 
             <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-foreground underline underline-offset-4 flex items-center gap-2 mt-2">
               <ArrowLeft className="h-4 w-4" />

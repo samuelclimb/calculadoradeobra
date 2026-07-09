@@ -8,6 +8,7 @@ import Result from '@/pages/Result';
 import Admin from '@/pages/Admin';
 import CasaComAlma from '@/pages/CasaComAlma';
 import CasaComAlmaResult from '@/pages/CasaComAlmaResult';
+import Privacy from '@/pages/Privacy';
 import NotFound from '@/pages/not-found';
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/casa-com-alma/resultado" component={CasaComAlmaResult} />
       <Route path="/resultado" component={Result} />
       <Route path="/admin" component={Admin} />
+      <Route path="/privacidade" component={Privacy} />
       <Route component={NotFound} />
     </Switch>
   );
