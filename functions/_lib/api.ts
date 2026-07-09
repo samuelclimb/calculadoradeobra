@@ -99,14 +99,11 @@ export function getSql(env: Env) {
 }
 
 export async function ensureLeadColumns(sql: ReturnType<typeof neon>) {
-  await sql`
-    alter table leads
-      add column if not exists origem text not null default 'custo_invisivel',
-      add column if not exists resultado text,
-      add column if not exists resultado_complementar text,
-      add column if not exists lead_score integer,
-      add column if not exists answers jsonb
-  `;
+  await sql`alter table leads add column if not exists origem text not null default 'custo_invisivel'`;
+  await sql`alter table leads add column if not exists resultado text`;
+  await sql`alter table leads add column if not exists resultado_complementar text`;
+  await sql`alter table leads add column if not exists lead_score integer`;
+  await sql`alter table leads add column if not exists answers jsonb`;
 }
 
 function normalizeLeadRow(row: LeadRow): LeadRow {
