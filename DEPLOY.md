@@ -5,7 +5,7 @@ Este projeto pode rodar como um unico servico Node: o Express serve `/api` e tam
 ## Variaveis obrigatorias
 
 - `DATABASE_URL`: URL Postgres.
-- `ADMIN_PASSWORD`: senha do painel admin, com pelo menos 8 caracteres.
+- `ADMIN_PASSWORD_HASH`: hash da senha do painel admin no formato `sha256:<salt>:<hash>`.
 - `NODE_ENV`: `production`.
 
 ## Build e start

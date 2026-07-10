@@ -2,8 +2,7 @@ import { neon } from "@neondatabase/serverless";
 
 type Env = {
   DATABASE_URL: string;
-  ADMIN_PASSWORD?: string;
-  ADMIN_PASSWORD_HASH?: string;
+  ADMIN_PASSWORD_HASH: string;
 };
 
 type LeadRow = {
@@ -268,21 +267,13 @@ export async function verifyAdmin(request: Request, env: Env): Promise<boolean> 
   const password = request.headers.get("x-admin-password");
   if (!password) return false;
 
-  if (env.ADMIN_PASSWORD_HASH) {
-    const [algorithm, salt, expectedHash] = env.ADMIN_PASSWORD_HASH.split(":");
-    if (algorithm !== "sha256" || !salt || !expectedHash) {
-      return false;
-    }
-
-    const actualHash = await sha256(`${salt}:${password}`);
-    return timingSafeEqual(actualHash, expectedHash);
+  const [algorithm, salt, expectedHash] = env.ADMIN_PASSWORD_HASH.split(":");
+  if (algorithm !== "sha256" || !salt || !expectedHash) {
+    return false;
   }
 
-  if (env.ADMIN_PASSWORD) {
-    return timingSafeEqual(password, env.ADMIN_PASSWORD);
-  }
-
-  return false;
+  const actualHash = await sha256(`${salt}:${password}`);
+  return timingSafeEqual(actualHash, expectedHash);
 }
 
 export function escapeCsv(value: string | null | undefined): string {

@@ -15,13 +15,7 @@ import {
 
 const router: IRouter = Router();
 
-const ADMIN_HASH_PREFIX = "scrypt";
-
-function hashAdminPassword(password: string, salt: string): string {
-  return crypto
-    .scryptSync(password, salt, 64, { N: 16384, r: 8, p: 1 })
-    .toString("hex");
-}
+const ADMIN_HASH_PREFIX = "sha256";
 
 function timingSafeEqualText(a: string, b: string): boolean {
   const aBuffer = Buffer.from(a, "utf8");
@@ -36,26 +30,21 @@ function timingSafeEqualText(a: string, b: string): boolean {
 
 function verifyAdminPassword(password: string): boolean {
   const adminPasswordHash = process.env["ADMIN_PASSWORD_HASH"];
-
-  if (adminPasswordHash) {
-    const parts = adminPasswordHash.includes(":")
-      ? adminPasswordHash.split(":")
-      : adminPasswordHash.split("$");
-    const [algorithm, salt, expectedHash] = parts;
-    if (algorithm !== ADMIN_HASH_PREFIX || !salt || !expectedHash) {
-      return false;
-    }
-
-    const actualHash = hashAdminPassword(password, salt);
-    return timingSafeEqualText(actualHash, expectedHash);
-  }
-
-  const adminPassword = process.env["ADMIN_PASSWORD"];
-  if (!adminPassword) {
+  if (!adminPasswordHash) {
     return false;
   }
 
-  return timingSafeEqualText(password, adminPassword);
+  const [algorithm, salt, expectedHash] = adminPasswordHash.split(":");
+  if (algorithm !== ADMIN_HASH_PREFIX || !salt || !expectedHash) {
+    return false;
+  }
+
+  const actualHash = crypto
+    .createHash("sha256")
+    .update(`${salt}:${password}`)
+    .digest("hex");
+
+  return timingSafeEqualText(actualHash, expectedHash);
 }
 
 // Classify risk based on calculator responses
@@ -178,7 +167,7 @@ function requireAdmin(req: any, res: any, next: any): void {
     return;
   }
 
-  if (!process.env["ADMIN_PASSWORD_HASH"] && !process.env["ADMIN_PASSWORD"]) {
+  if (!process.env["ADMIN_PASSWORD_HASH"]) {
     req.log.error("Admin password env var not set");
     res.status(500).json({ error: "Configuração de servidor inválida" });
     return;

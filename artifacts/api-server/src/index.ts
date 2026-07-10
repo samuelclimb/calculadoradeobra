@@ -10,11 +10,10 @@ if (!rawPort) {
 }
 
 const adminPasswordHash = process.env["ADMIN_PASSWORD_HASH"];
-const adminPassword = process.env["ADMIN_PASSWORD"];
 
-if (!adminPasswordHash && (!adminPassword || adminPassword.length < 8)) {
+if (!adminPasswordHash) {
   throw new Error(
-    "ADMIN_PASSWORD_HASH is required. As a temporary fallback, ADMIN_PASSWORD must be at least 8 characters.",
+    "ADMIN_PASSWORD_HASH is required.",
   );
 }
 
