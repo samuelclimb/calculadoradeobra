@@ -9,6 +9,7 @@ import {
   ClipboardList,
   FileText,
   Info,
+  Instagram,
   Leaf,
   Ruler,
   ShieldCheck,
@@ -206,6 +207,25 @@ export default function Result() {
               Antes de contratar, comprar ou iniciar a próxima etapa, revise o que ainda não está claro. Quanto mais
               objetivo for o plano, menor a chance de pequenos detalhes virarem gasto extra.
             </p>
+          </section>
+
+          <section className="mt-6 rounded-2xl border border-card-border bg-card p-6 text-center md:p-8">
+            <p className="mx-auto max-w-2xl font-serif text-2xl font-semibold leading-tight tracking-tight">
+              Continue acompanhando ideias para planejar melhor sua obra.
+            </p>
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+              No Instagram da Phayna Arquitetura você encontra referências, bastidores e conteúdos para transformar
+              decisões de obra em escolhas mais claras.
+            </p>
+            <a
+              href="https://www.instagram.com/phaynasouzza/?__pwa=1#"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-4 font-semibold text-primary-foreground transition hover:bg-primary/90"
+            >
+              <Instagram className="h-5 w-5" strokeWidth={1.7} />
+              Seguir no Instagram
+            </a>
           </section>
 
           <div className="mt-10 flex flex-col items-center gap-6">
